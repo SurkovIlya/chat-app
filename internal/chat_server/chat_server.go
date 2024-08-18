@@ -131,6 +131,18 @@ func (chs *ChatServer) WriteMsg(roomName, userName, msg string) error {
 	return nil
 }
 
+func (chs *ChatServer) GetUserRooms(client models.User) []string {
+	userRooms := make([]string, 0)
+
+	for roomName := range chs.Rooms {
+		if chs.Rooms[roomName].Contains(client) {
+			userRooms = append(userRooms, roomName)
+		}
+	}
+
+	return userRooms
+}
+
 func (chs *ChatServer) prepare() {
 	roomsNames, err := chs.Storage.GetAllRooms()
 	if err != nil {

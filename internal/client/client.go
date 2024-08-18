@@ -66,6 +66,14 @@ func (c *Client) Read() {
 				continue
 			}
 			c.Receive <- []byte(fmt.Sprintf("Вы присоединидись к комнате %s", commandType[1]))
+		case "/check_my_room":
+			userRooms := c.ChatServer.GetUserRooms(models.User{UserName: c.UserName, Conn: c.Socket})
+			if len(userRooms) == 0 {
+				c.Receive <- []byte("Вы не состоите не в одной комнате")
+
+				continue
+			}
+			c.Receive <- []byte(fmt.Sprintf("Вы являетесь участником в комнатах: %s", strings.Join(userRooms, ", ")))
 		case "/send":
 			err := c.ChatServer.WriteMsg(commandType[1], c.UserName, strings.Join(commandType[2:], " "))
 			if err != nil {
