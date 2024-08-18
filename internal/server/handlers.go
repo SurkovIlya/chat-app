@@ -29,10 +29,18 @@ func (s *Server) Connect(w http.ResponseWriter, req *http.Request) {
 	}
 
 	userName := s.genUserName()
+	exist, err := s.UserStorage.UserExist(userName)
+	if err != nil {
+		log.Printf("error UserExist: %s", err)
+	}
+
+	if exist {
+		userName = "the_best_" + userName
+	}
 
 	c := client.New(userName, socket, s.ChatServer)
 
-	err = s.SaveUser.SaveUser(userName)
+	err = s.UserStorage.SaveUser(userName)
 	if err != nil {
 		log.Printf("error SaveUser: %s", err)
 	}

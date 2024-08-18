@@ -28,6 +28,22 @@ func (ps *PostgresStorage) SaveUser(userName string) error {
 	return nil
 }
 
+func (ps *PostgresStorage) UserExist(userName string) (bool, error) {
+	var exist bool
+	query := `SELECT EXISTS (
+				SELECT 1
+				FROM users
+				WHERE user_name = $1);`
+	row := ps.storage.Conn.QueryRow(query, userName)
+
+	err := row.Scan(&exist)
+	if err != nil {
+		return exist, fmt.Errorf("error Scan:%s", err)
+	}
+
+	return exist, nil
+}
+
 func (ps *PostgresStorage) SaveRoom(roomName, userName string) error {
 	query := `INSERT INTO rooms (room_name) VALUES($1)`
 
