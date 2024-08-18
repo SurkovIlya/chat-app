@@ -22,6 +22,8 @@ var upgrader = &websocket.Upgrader{
 }
 
 func (s *Server) Connect(w http.ResponseWriter, req *http.Request) {
+	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
+
 	socket, err := upgrader.Upgrade(w, req, nil)
 	if err != nil {
 		log.Fatal("ServeHTTP:", err)
