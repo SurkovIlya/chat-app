@@ -14,6 +14,8 @@ type Room struct {
 	sync.RWMutex
 }
 
+const ServerName = "SERVER"
+
 func NewRoom(client models.User) *Room {
 	clients := make([]models.User, 0)
 
@@ -43,6 +45,9 @@ func (r *Room) WriteMsg(roomName, userName, msg string) error {
 
 	r.RLock()
 	userAccess = func(u string) bool {
+		if u == ServerName {
+			return true
+		}
 		for _, client := range r.clients {
 			if client.UserName == u {
 				return true

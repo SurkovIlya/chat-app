@@ -11,6 +11,8 @@ type PostgresStorage struct {
 	storage *postgres.Database
 }
 
+const timeShiftMin = 5
+
 func New(storage *postgres.Database) *PostgresStorage {
 	return &PostgresStorage{
 		storage: storage,
@@ -137,12 +139,14 @@ func (ps *PostgresStorage) GetMsgs(roomName string) ([]models.RoomMsg, error) {
 		return nil, fmt.Errorf("error getsID: %s", err)
 	}
 
+	unixTimeShift := 180 + timeShiftMin
+
 	query := `SELECT u.user_name, m.content 
 				FROM messages AS m 
 				LEFT JOIN users AS u ON u.id = m.user_id
-				WHERE m.room_id = $1`
+				WHERE m.room_id = $1 AND created >= NOW() - INTERVAL $2`
 
-	rows, err := ps.storage.Conn.Query(query, roomID)
+	rows, err := ps.storage.Conn.Query(query, roomID, unixTimeShift)
 	if err != nil {
 		return nil, fmt.Errorf("error Query: %s", err)
 	}

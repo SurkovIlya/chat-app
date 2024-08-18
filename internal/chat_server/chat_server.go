@@ -73,23 +73,23 @@ func (chs *ChatServer) JoinRoom(roomName string, user models.User) error {
 	chs.RLock()
 	defer chs.RUnlock()
 
-	room, ok := chs.Rooms[roomName]
+	r, ok := chs.Rooms[roomName]
 	if !ok {
 		return fmt.Errorf("room doesn't exist")
 	}
 
-	if room.Contains(user) {
+	if r.Contains(user) {
 		return fmt.Errorf("user already exists")
 	}
 
 	welcome := fmt.Sprintf("!!!Пользователь %s присоединился к комнате!!!", user.UserName)
 
-	err := chs.WriteMsg(roomName, "SERVER", welcome)
+	err := chs.WriteMsg(roomName, room.ServerName, welcome)
 	if err != nil {
 		return fmt.Errorf("error WriteMsg: %s", err)
 	}
 
-	room.JoinRoom(user)
+	r.JoinRoom(user)
 	oldMsgs, err := chs.Storage.GetMsgs(roomName)
 	if err != nil {
 		return fmt.Errorf("error GetMsgs: %s", err)
@@ -111,17 +111,17 @@ func (chs *ChatServer) WriteMsg(roomName, userName, msg string) error {
 	chs.RLock()
 	defer chs.RUnlock()
 
-	room, ok := chs.Rooms[roomName]
+	r, ok := chs.Rooms[roomName]
 	if !ok {
 		return fmt.Errorf("room doesn't exist")
 	}
 
-	err := room.WriteMsg(roomName, userName, msg)
+	err := r.WriteMsg(roomName, userName, msg)
 	if err != nil {
 		return fmt.Errorf("произошла ошибка: %s", err)
 	}
 
-	if userName != "SERVER" {
+	if userName != room.ServerName {
 		err := chs.Storage.SaveMsg(roomName, userName, msg)
 		if err != nil {
 			return fmt.Errorf("error SaveMsg: %s", err)
