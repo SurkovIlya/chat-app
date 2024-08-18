@@ -29,10 +29,15 @@ func New(storage DataStorage) *ChatServer {
 	}
 }
 
-func (chs *ChatServer) AddRoom(roomName string, client models.User) {
+func (chs *ChatServer) AddRoom(roomName string, client models.User) error {
+	chs.Lock()
+
+	if _, ok := chs.Rooms[roomName]; !ok {
+		return fmt.Errorf("room already exists")
+	}
+
 	r := room.NewRoom(client)
 
-	chs.Lock()
 	chs.Rooms[roomName] = r
 	chs.Unlock()
 
@@ -40,6 +45,8 @@ func (chs *ChatServer) AddRoom(roomName string, client models.User) {
 	if err != nil {
 		log.Printf("error AddRoom: %s", err)
 	}
+
+	return nil
 }
 
 func (chs *ChatServer) GetAllRooms() []string {

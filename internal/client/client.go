@@ -44,7 +44,13 @@ func (c *Client) Read() {
 			names := c.ChatServer.GetAllRooms()
 			c.Receive <- []byte(fmt.Sprintf("вот комнаты: %s", strings.Join(names, ",")))
 		case "/create_room":
-			c.ChatServer.AddRoom(commandType[1], models.User{UserName: c.UserName, Conn: c.Socket})
+			err := c.ChatServer.AddRoom(commandType[1], models.User{UserName: c.UserName, Conn: c.Socket})
+			if err != nil {
+				log.Printf("error create_room: %s", err)
+				c.Receive <- []byte(fmt.Sprint("Возникла проблема: ", err))
+
+				continue
+			}
 			c.Receive <- []byte(fmt.Sprintf("Вы создали комнату %s", commandType[1]))
 		case "/join_room":
 			err := c.ChatServer.JoinRoom(commandType[1], models.User{UserName: c.UserName, Conn: c.Socket, Receive: c.Receive})
