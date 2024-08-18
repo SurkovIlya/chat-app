@@ -16,7 +16,10 @@ type Room struct {
 
 func NewRoom(client models.User) *Room {
 	clients := make([]models.User, 0)
-	clients = append(clients, client)
+
+	if client.Conn != nil {
+		clients = append(clients, client)
+	}
 
 	room := Room{
 		forward: make(chan []byte),

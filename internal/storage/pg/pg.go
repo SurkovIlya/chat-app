@@ -141,6 +141,7 @@ func (ps *PostgresStorage) GetMsgs(roomName string) ([]models.RoomMsg, error) {
 				FROM messages AS m 
 				LEFT JOIN users AS u ON u.id = m.user_id
 				WHERE m.room_id = $1`
+
 	rows, err := ps.storage.Conn.Query(query, roomID)
 	if err != nil {
 		return nil, fmt.Errorf("error Query: %s", err)
@@ -164,5 +165,26 @@ func (ps *PostgresStorage) GetMsgs(roomName string) ([]models.RoomMsg, error) {
 
 func (ps *PostgresStorage) GetAllRooms() ([]string, error) {
 	rooms := make([]string, 0)
+
+	query := `SELECT room_name FROM rooms`
+
+	rows, err := ps.storage.Conn.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("error Query: %s", err)
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var room string
+
+		err := rows.Scan(&room)
+		if err != nil {
+			return nil, fmt.Errorf("error Scan: %s", err)
+		}
+
+		rooms = append(rooms, room)
+	}
+
 	return rooms, nil
 }

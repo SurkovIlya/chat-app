@@ -14,6 +14,7 @@ type DataStorage interface {
 	SaveMembersChat(roomName, userName string) error
 	SaveMsg(roomName, userName, msg string) error
 	GetMsgs(roomName string) ([]models.RoomMsg, error)
+	GetAllRooms() ([]string, error)
 }
 
 type ChatServer struct {
@@ -23,10 +24,14 @@ type ChatServer struct {
 }
 
 func New(storage DataStorage) *ChatServer {
-	return &ChatServer{
+	chatServer := &ChatServer{
 		Rooms:   make(map[string]*room.Room),
 		Storage: storage,
 	}
+
+	chatServer.prepare()
+
+	return chatServer
 }
 
 func (chs *ChatServer) AddRoom(roomName string, client models.User) error {
@@ -121,4 +126,18 @@ func (chs *ChatServer) WriteMsg(roomName, userName, msg string) error {
 	}
 
 	return nil
+}
+
+func (chs *ChatServer) prepare() {
+	roomsNames, err := chs.Storage.GetAllRooms()
+	if err != nil {
+		log.Fatalf("failed to get rooms: %s", err)
+	}
+
+	chs.Lock()
+	defer chs.Unlock()
+
+	for _, roomName := range roomsNames {
+		chs.Rooms[roomName] = room.NewRoom(models.User{})
+	}
 }
