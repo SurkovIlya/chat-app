@@ -43,42 +43,42 @@ func (c *Client) Read() {
 		case "/check_all_rooms":
 			names := c.ChatServer.GetAllRooms()
 			if len(names) == 0 {
-				c.Receive <- []byte("Комнат еще нет! Вы можете их создать.")
+				c.Receive <- []byte("There are no rooms yet! You can create them.")
 
 				continue
 			}
-			c.Receive <- []byte(fmt.Sprintf("вот комнаты: %s", strings.Join(names, ", ")))
+			c.Receive <- []byte(fmt.Sprintf("Available rooms: %s", strings.Join(names, ", ")))
 		case "/create_room":
 			err := c.ChatServer.AddRoom(commandType[1], models.User{UserName: c.UserName, Conn: c.Socket})
 			if err != nil {
-				log.Printf("error create_room: %s", err)
-				c.Receive <- []byte(fmt.Sprint("Возникла проблема: ", err))
+				log.Printf("Error create room: %s", err)
+				c.Receive <- []byte(fmt.Sprint("Error create room: ", err))
 
 				continue
 			}
-			c.Receive <- []byte(fmt.Sprintf("Вы создали комнату %s", commandType[1]))
+			c.Receive <- []byte(fmt.Sprintf("You have created a room %s", commandType[1]))
 		case "/join_room":
 			err := c.ChatServer.JoinRoom(commandType[1], models.User{UserName: c.UserName, Conn: c.Socket, Receive: c.Receive})
 			if err != nil {
 				log.Printf("error JoinRoom: %s", err)
-				c.Receive <- []byte(fmt.Sprint("Возникла проблема: ", err))
+				c.Receive <- []byte(fmt.Sprint("Error join room: ", err))
 
 				continue
 			}
-			c.Receive <- []byte(fmt.Sprintf("Вы присоединидись к комнате %s", commandType[1]))
+			c.Receive <- []byte(fmt.Sprintf("You have joined the room %s", commandType[1]))
 		case "/check_my_room":
 			userRooms := c.ChatServer.GetUserRooms(models.User{UserName: c.UserName, Conn: c.Socket})
 			if len(userRooms) == 0 {
-				c.Receive <- []byte("Вы не состоите не в одной комнате")
+				c.Receive <- []byte("You are not in the same room")
 
 				continue
 			}
-			c.Receive <- []byte(fmt.Sprintf("Вы являетесь участником в комнатах: %s", strings.Join(userRooms, ", ")))
+			c.Receive <- []byte(fmt.Sprintf("You are a member of the rooms: %s", strings.Join(userRooms, ", ")))
 		case "/send":
 			err := c.ChatServer.WriteMsg(commandType[1], c.UserName, strings.Join(commandType[2:], " "))
 			if err != nil {
 				log.Printf("error WriteMsg: %s", err)
-				c.Receive <- []byte(fmt.Sprintf("Возникла проблема: %s", err))
+				c.Receive <- []byte(fmt.Sprintf("Error send message: %s", err))
 			}
 		}
 
@@ -96,5 +96,5 @@ func (c *Client) Write() {
 }
 
 func (c *Client) Welcome() {
-	c.Receive <- []byte("Добро пожаловать! Введите команду /help")
+	c.Receive <- []byte("Welcome! Enter the command /help")
 }

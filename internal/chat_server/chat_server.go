@@ -82,7 +82,7 @@ func (chs *ChatServer) JoinRoom(roomName string, user models.User) error {
 		return fmt.Errorf("user already exists")
 	}
 
-	welcome := fmt.Sprintf("!!!Пользователь %s присоединился к комнате!!!", user.UserName)
+	welcome := fmt.Sprintf("!!!User %s joined the room!!!", user.UserName)
 
 	err := chs.WriteMsg(roomName, room.ServerName, welcome)
 	if err != nil {
@@ -118,7 +118,7 @@ func (chs *ChatServer) WriteMsg(roomName, userName, msg string) error {
 
 	err := r.WriteMsg(roomName, userName, msg)
 	if err != nil {
-		return fmt.Errorf("произошла ошибка: %s", err)
+		return fmt.Errorf("error WriteMsg: %s", err)
 	}
 
 	if userName != room.ServerName {
