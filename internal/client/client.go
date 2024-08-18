@@ -44,12 +44,15 @@ func (c *Client) Read() {
 			names := c.ChatServer.GetAllRooms()
 			c.Receive <- []byte(fmt.Sprintf("вот комнаты: %s", strings.Join(names, ",")))
 		case "/create_room":
-			c.ChatServer.AddRoom(commandType[1], c.Socket, c.UserName)
+			c.ChatServer.AddRoom(commandType[1], models.User{UserName: c.UserName, Conn: c.Socket})
 			c.Receive <- []byte(fmt.Sprintf("Вы создали комнату %s", commandType[1]))
 		case "/join_room":
 			err := c.ChatServer.JoinRoom(commandType[1], models.User{UserName: c.UserName, Conn: c.Socket, Receive: c.Receive})
 			if err != nil {
 				log.Printf("error JoinRoom: %s", err)
+				c.Receive <- []byte(fmt.Sprint("Возникла проблема: ", err))
+
+				continue
 			}
 			c.Receive <- []byte(fmt.Sprintf("Вы присоединидись к комнате %s", commandType[1]))
 		case "/send":

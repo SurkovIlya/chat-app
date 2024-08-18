@@ -7,7 +7,6 @@ import (
 
 	"github.com/SurkovIlya/chat-app/internal/models"
 	"github.com/SurkovIlya/chat-app/internal/room"
-	"github.com/gorilla/websocket"
 )
 
 type DataStorage interface {
@@ -30,14 +29,14 @@ func New(storage DataStorage) *ChatServer {
 	}
 }
 
-func (chs *ChatServer) AddRoom(roomName string, client *websocket.Conn, userName string) {
+func (chs *ChatServer) AddRoom(roomName string, client models.User) {
 	r := room.NewRoom(client)
 
 	chs.Lock()
 	chs.Rooms[roomName] = r
 	chs.Unlock()
 
-	err := chs.Storage.SaveRoom(roomName, userName)
+	err := chs.Storage.SaveRoom(roomName, client.UserName)
 	if err != nil {
 		log.Printf("error AddRoom: %s", err)
 	}
@@ -65,6 +64,10 @@ func (chs *ChatServer) JoinRoom(roomName string, user models.User) error {
 		return fmt.Errorf("room doesn't exist")
 	}
 
+	if room.Contains(user) {
+		return fmt.Errorf("user already exists")
+	}
+
 	welcome := fmt.Sprintf("!!!Пользователь %s присоединился к комнате!!!", user.UserName)
 
 	err := chs.WriteMsg(roomName, "SERVER", welcome)
@@ -72,7 +75,7 @@ func (chs *ChatServer) JoinRoom(roomName string, user models.User) error {
 		return fmt.Errorf("error WriteMsg: %s", err)
 	}
 
-	room.JoinRoom(user.Conn)
+	room.JoinRoom(user)
 	oldMsgs, err := chs.Storage.GetMsgs(roomName)
 	if err != nil {
 		return fmt.Errorf("error GetMsgs: %s", err)

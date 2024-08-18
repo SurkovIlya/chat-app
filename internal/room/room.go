@@ -4,17 +4,18 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/SurkovIlya/chat-app/internal/models"
 	"github.com/gorilla/websocket"
 )
 
 type Room struct {
-	clients []*websocket.Conn
+	clients []models.User
 	forward chan []byte
 	sync.RWMutex
 }
 
-func NewRoom(client *websocket.Conn) *Room {
-	clients := make([]*websocket.Conn, 0)
+func NewRoom(client models.User) *Room {
+	clients := make([]models.User, 0)
 	clients = append(clients, client)
 
 	room := Room{
@@ -25,7 +26,7 @@ func NewRoom(client *websocket.Conn) *Room {
 	return &room
 }
 
-func (r *Room) JoinRoom(client *websocket.Conn) {
+func (r *Room) JoinRoom(client models.User) {
 	r.Lock()
 	defer r.Unlock()
 
@@ -36,9 +37,19 @@ func (r *Room) WriteMsg(roomName, userName, msg string) {
 	data := fmt.Sprintf("->%s<- %s: %s", roomName, userName, msg)
 
 	for _, client := range r.clients {
-		err := client.WriteMessage(websocket.TextMessage, []byte(data))
+		err := client.Conn.WriteMessage(websocket.TextMessage, []byte(data))
 		if err != nil {
 			return
 		}
 	}
+}
+
+func (r *Room) Contains(user models.User) bool {
+	for _, u := range r.clients {
+		if u.UserName == user.UserName {
+			return true
+		}
+	}
+
+	return false
 }
