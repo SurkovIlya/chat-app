@@ -44,7 +44,6 @@ func (s *Server) Shutdown(ctx context.Context) error {
 	return s.httpServer.Shutdown(ctx)
 }
 
-// TODO: добавить хендлеры
 func (s *Server) initRoutes() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/chat", s.Connect)
