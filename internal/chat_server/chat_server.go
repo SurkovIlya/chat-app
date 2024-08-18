@@ -116,7 +116,10 @@ func (chs *ChatServer) WriteMsg(roomName, userName, msg string) error {
 		return fmt.Errorf("room doesn't exist")
 	}
 
-	room.WriteMsg(roomName, userName, msg)
+	err := room.WriteMsg(roomName, userName, msg)
+	if err != nil {
+		return fmt.Errorf("произошла ошибка: %s", err)
+	}
 
 	if userName != "SERVER" {
 		err := chs.Storage.SaveMsg(roomName, userName, msg)

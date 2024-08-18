@@ -62,7 +62,11 @@ func (c *Client) Read() {
 			}
 			c.Receive <- []byte(fmt.Sprintf("Вы присоединидись к комнате %s", commandType[1]))
 		case "/send":
-			c.ChatServer.WriteMsg(commandType[1], c.UserName, strings.Join(commandType[2:], " "))
+			err := c.ChatServer.WriteMsg(commandType[1], c.UserName, strings.Join(commandType[2:], " "))
+			if err != nil {
+				log.Printf("error WriteMsg: %s", err)
+				c.Receive <- []byte(fmt.Sprintf("Возникла проблема: %s", err))
+			}
 		}
 
 	}
