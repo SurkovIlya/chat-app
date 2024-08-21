@@ -18,7 +18,6 @@ type Client struct {
 }
 
 func New(userName string, socket *websocket.Conn, chs *chatserver.ChatServer) *Client {
-
 	return &Client{
 		UserName:   userName,
 		Socket:     socket,
@@ -47,32 +46,46 @@ func (c *Client) Read() {
 
 				continue
 			}
+
 			c.Receive <- []byte(fmt.Sprintf("Available rooms: %s", strings.Join(names, ", ")))
 		case "/create_room":
-			err := c.ChatServer.AddRoom(commandType[1], models.User{UserName: c.UserName, Conn: c.Socket})
+			err := c.ChatServer.AddRoom(commandType[1], models.User{
+				UserName: c.UserName,
+				Conn:     c.Socket,
+			})
 			if err != nil {
 				log.Printf("Error create room: %s", err)
 				c.Receive <- []byte(fmt.Sprint("Error create room: ", err))
 
 				continue
 			}
+
 			c.Receive <- []byte(fmt.Sprintf("You have created a room %s", commandType[1]))
 		case "/join_room":
-			err := c.ChatServer.JoinRoom(commandType[1], models.User{UserName: c.UserName, Conn: c.Socket, Receive: c.Receive})
+			err := c.ChatServer.JoinRoom(commandType[1], models.User{
+				UserName: c.UserName,
+				Conn:     c.Socket,
+				Receive:  c.Receive,
+			})
 			if err != nil {
 				log.Printf("error JoinRoom: %s", err)
 				c.Receive <- []byte(fmt.Sprint("Error join room: ", err))
 
 				continue
 			}
+
 			c.Receive <- []byte(fmt.Sprintf("You have joined the room %s", commandType[1]))
 		case "/check_my_room":
-			userRooms := c.ChatServer.GetUserRooms(models.User{UserName: c.UserName, Conn: c.Socket})
+			userRooms := c.ChatServer.GetUserRooms(models.User{
+				UserName: c.UserName,
+				Conn:     c.Socket,
+			})
 			if len(userRooms) == 0 {
 				c.Receive <- []byte("You are not in the same room")
 
 				continue
 			}
+
 			c.Receive <- []byte(fmt.Sprintf("You are a member of the rooms: %s", strings.Join(userRooms, ", ")))
 		case "/send":
 			err := c.ChatServer.WriteMsg(commandType[1], c.UserName, strings.Join(commandType[2:], " "))
@@ -81,7 +94,6 @@ func (c *Client) Read() {
 				c.Receive <- []byte(fmt.Sprintf("Error send message: %s", err))
 			}
 		}
-
 	}
 }
 

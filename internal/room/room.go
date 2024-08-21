@@ -10,7 +10,6 @@ import (
 
 type Room struct {
 	clients []models.User
-	forward chan []byte
 	sync.RWMutex
 }
 
@@ -24,7 +23,6 @@ func NewRoom(client models.User) *Room {
 	}
 
 	room := Room{
-		forward: make(chan []byte),
 		clients: clients,
 	}
 
